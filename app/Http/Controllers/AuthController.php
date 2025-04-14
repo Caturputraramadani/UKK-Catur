@@ -23,7 +23,7 @@ class AuthController extends Controller
             $user = Auth::user();
 
             if ($user->role === 'admin' || $user->role === 'employee') {
-                return redirect()->route('dashboard');
+                return redirect()->route('dashboard')->with('success', 'Login berhasil!');
             }
         }
 
@@ -33,6 +33,6 @@ class AuthController extends Controller
     public function logout()
     {
         Auth::logout();
-        return redirect('/login');
+        return redirect('/login')->with('success', 'Anda telah logout!');
     }
 }

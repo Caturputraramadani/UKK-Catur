@@ -274,7 +274,7 @@ class SalesController extends Controller
     }
 
 
-    public function updateMemberPayment(Request $request, $id)
+    public function updateMemberPayment(Request $request, $id)  
     {
         $sale = Sale::with('member')->findOrFail($id);
 
@@ -347,6 +347,71 @@ class SalesController extends Controller
     }
 
 
+    public function getSalesChartData()
+    {
+        $endDate = Carbon::today();
+        $startDate = Carbon::today()->startOfMonth();
 
-    
+        $salesData = Sale::selectRaw('DATE(date) as date, COUNT(*) as count')
+            ->whereDate('date', '>=', $startDate)
+            ->whereDate('date', '<=', $endDate)
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
+
+        $result = [];
+        $currentDate = $startDate->copy();
+
+        while ($currentDate <= $endDate) {
+            $dateString = $currentDate->format('Y-m-d');
+            $found = $salesData->firstWhere('date', $dateString);
+
+            $result[] = [
+                'date' => $currentDate->format('d M'),
+                'count' => $found ? $found->count : 0,
+                'full_date' => $currentDate->format('d M Y')
+            ];
+
+            $currentDate->addDay();
+        }
+
+        return response()->json($result);
+    }
+
+
+    public function getProductSalesData()
+    {
+        try {
+            $productSales = SaleDetail::with('product')
+                ->selectRaw('product_id, SUM(quantity_product) as total_sold')
+                ->groupBy('product_id')
+                ->orderBy('total_sold', 'desc')
+                ->get()
+                ->map(function ($item) {
+                    return [
+                        'product_name' => $item->product->name ?? 'Produk Tidak Dikenal',
+                        'total_sold' => (int)$item->total_sold
+                    ];
+                });
+
+            if ($productSales->isEmpty()) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Tidak ada data penjualan',
+                    'data' => []
+                ], 200);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $productSales
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal memuat data: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

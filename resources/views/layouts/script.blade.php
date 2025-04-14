@@ -384,7 +384,7 @@
             memberFields.classList.toggle('hidden', this.value !== "1");
         });
 
-        
+
         paymentForm.addEventListener('submit', function(e) {
             e.preventDefault();
 
@@ -545,6 +545,249 @@
     $(document).ready(function() {
         initializeSalesPagination();
     });
+</script>
+
+
+
+{{-- Script Sales Chart --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('{{ route("sales.chart") }}')
+        .then(response => response.json())
+        .then(data => {
+            const dates = data.map(item => item.date);
+            const fullDates = data.map(item => item.full_date);
+            const counts = data.map(item => item.count);
+
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Penjualan',
+                        data: counts,
+                        backgroundColor: function(context) {
+                            const value = context.dataset.data[context.dataIndex];
+                            return value > 0 ? 'rgba(59, 130, 246, 0.7)' : 'rgba(209, 213, 219, 0.5)';
+                        },
+                        borderColor: function(context) {
+                            const value = context.dataset.data[context.dataIndex];
+                            return value > 0 ? 'rgba(59, 130, 246, 1)' : 'rgba(209, 213, 219, 1)';
+                        },
+                        borderWidth: 1,
+                        barThickness: 12,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0,
+                                stepSize: 1,
+                                font: {
+                                    size: 11
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Jumlah Penjualan',
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(229, 231, 235, 1)',
+                                drawTicks: false
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                autoSkip: false,
+                                maxRotation: 45,
+                                minRotation: 45,
+                                font: {
+                                    size: 10,
+                                    style: 'italic'
+                                },
+                                ccallback: function(value, index) {
+    return dates[index];
+}
+
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Jumlah: ' + context.raw;
+                                },
+                                title: function(context) {
+                                    return fullDates[context[0].dataIndex];
+                                }
+                            },
+                            displayColors: false,
+                            backgroundColor: 'rgba(17, 24, 39, 0.9)',
+                            titleFont: {
+                                size: 12,
+                                style: 'italic'
+                            },
+                            bodyFont: {
+                                size: 12
+                            }
+                        },
+                        legend: {
+                            display: false
+                        }
+                    },
+                    layout: {
+                        padding: {
+                            top: 20,
+                            bottom: 20
+                        }
+                    }
+                }
+            });
+
+
+            const dateLabelsContainer = document.getElementById('dateLabels');
+            data.forEach((item, index) => {
+                if (item.count > 0) {
+                    const dateElement = document.createElement('div');
+                    dateElement.className = 'px-2 py-1 italic text-gray-600';
+                    dateElement.textContent = fullDates[index];
+                    dateLabelsContainer.appendChild(dateElement);
+                }
+            });
+        });
+    });
+</script>
+
+{{-- Script Product Chart --}}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+                     const loadProductChart = async () => {
+                         const chartContainer = document.getElementById('productChartContainer');
+                         const chartCanvas = document.getElementById('productSalesChart');
+                         const loadingEl = document.getElementById('chartLoading');
+                         const errorEl = document.getElementById('chartError');
+                         const emptyEl = document.getElementById('chartEmpty');
+
+                         try {
+                             // Tampilkan loading
+                             loadingEl.classList.remove('hidden');
+                             errorEl.classList.add('hidden');
+                             emptyEl.classList.add('hidden');
+
+                             const response = await fetch('{{ route("sales.products.chart") }}');
+
+                             if (!response.ok) {
+                                 throw new Error(`HTTP error! status: ${response.status}`);
+                             }
+
+                             const result = await response.json();
+
+                             // Sembunyikan loading
+                             loadingEl.classList.add('hidden');
+
+                             if (result.status === 'error') {
+                                 throw new Error(result.message);
+                             }
+
+                             if (!result.data || result.data.length === 0) {
+                                 emptyEl.classList.remove('hidden');
+                                 chartCanvas.style.display = 'none';
+                                 return;
+                             }
+
+                             // Render chart
+                             renderProductChart(result.data);
+
+                         } catch (error) {
+                             console.error('Error:', error);
+                             loadingEl.classList.add('hidden');
+                             errorEl.textContent = `Gagal memuat data: ${error.message}`;
+                             errorEl.classList.remove('hidden');
+                             chartCanvas.style.display = 'none';
+                         }
+                     };
+
+                     const renderProductChart = (data) => {
+                         const productNames = data.map(item => item.product_name);
+                         const totalSold = data.map(item => item.total_sold);
+
+                         const backgroundColors = [];
+                         const borderColors = [];
+
+                         productNames.forEach((_, index) => {
+                             const hue = (index * 137.508) % 360;
+                             backgroundColors.push(`hsla(${hue}, 70%, 70%, 0.7)`);
+                             borderColors.push(`hsla(${hue}, 70%, 50%, 1)`);
+                         });
+
+                         const ctx = document.getElementById('productSalesChart').getContext('2d');
+                         new Chart(ctx, {
+                             type: 'pie',
+                             data: {
+                                 labels: productNames,
+                                 datasets: [{
+                                     data: totalSold,
+                                     backgroundColor: backgroundColors,
+                                     borderColor: borderColors,
+                                     borderWidth: 1
+                                 }]
+                             },
+                             options: {
+                                 responsive: true,
+                                 maintainAspectRatio: false,
+                                 plugins: {
+                                     legend: {
+                                         position: 'right',
+                                         labels: {
+                                             font: {
+                                                 size: 12
+                                             },
+                                             padding: 20
+                                         }
+                                     },
+                                     tooltip: {
+                                         callbacks: {
+                                             label: function(context) {
+                                                 const label = context.label || '';
+                                                 const value = context.raw || 0;
+                                                 const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                                 const percentage = Math.round((value / total) * 100);
+                                                 return `${label}: ${value} (${percentage}%)`;
+                                             }
+                                         }
+                                     },
+                                     title: {
+                                         display: true,
+                                         text: 'Total Penjualan: ' + totalSold.reduce((a, b) => a + b, 0),
+                                         font: {
+                                             size: 14
+                                         },
+                                         padding: {
+                                             top: 10,
+                                             bottom: 20
+                                         }
+                                     }
+                                 }
+                             }
+                         });
+                     };
+
+                     loadProductChart();
+                 });
+
 </script>
 
 

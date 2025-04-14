@@ -21,3 +21,6 @@ class Member extends Model
         return $this->hasMany(Sale::class);
     }
 }
+
+
+

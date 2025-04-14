@@ -12,8 +12,8 @@
         <div class="card-body">
             <div class="flex justify-between mt-4 mb-4">
                 <!-- Export Sales button on the left -->
-                <a href="{{ route('sales.exportExcel') }}" class="btn btn-primary">
-                    <i class="fas fa-download"></i> Export Sales (.xlsx)
+                <a href="{{ route('sales.exportExcel') }}" class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-full mb-3">
+                    Export Sales (.xlsx)
                 </a>
 
                 <!-- Add Sales button on the right -->

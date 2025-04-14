@@ -39,6 +39,44 @@
     <!-- SweetAlert JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <!-- SweetAlert Notifications -->
+    @if(session('success'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                title: 'Success!',
+                text: '{{ session('success') }}',
+                icon: 'success',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#3b82f6',
+                showConfirmButton: true,
+                allowOutsideClick: true,
+                allowEscapeKey: true,
+                allowEnterKey: true,
+                timer: null
+            });
+        });
+    </script>
+    @endif
+
+    @if(session('error'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                title: 'Error!',
+                text: '{{ session('error') }}',
+                icon: 'error',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#3b82f6',
+                showConfirmButton: true,
+                allowOutsideClick: true,
+                allowEscapeKey: true,
+                allowEnterKey: true,
+                timer: null
+            });
+        });
+    </script>
+    @endif
 
     <!-- Stack the page-specific scripts -->
     @stack('scripts')

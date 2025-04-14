@@ -27,12 +27,12 @@ Route::middleware('auth')->group(function () {
 
 // User Routes - hanya bisa diakses oleh admin
 Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/users', [UserController::class, 'index'])->name('users.index');
-Route::match(['post', 'put'], '/user/{id?}', [UserController::class, 'save'])->name('users.save');
-Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
 
 });
 
+Route::get('/users', [UserController::class, 'index'])->name('users.index');
+Route::match(['post', 'put'], '/user/{id?}', [UserController::class, 'save'])->name('users.save');
+Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
 
 // Sales Routes
 Route::middleware('auth')->group(function () {
@@ -65,3 +65,4 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/sales/products-chart', [SalesController::class, 'getProductSalesData'])->name('sales.products.chart');
 });
+

@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -6,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     @include('layouts.css')
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900">
 <section class="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
@@ -14,6 +15,7 @@
             <h1 class="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
                 Hello! Please sign in to your account
             </h1>
+
             {{-- Menampilkan error jika ada --}}
             @if ($errors->any())
                 <div class="mb-4">
@@ -22,6 +24,7 @@
                     @endforeach
                 </div>
             @endif
+
             <form action="{{ route('login') }}" method="POST" class="space-y-4 md:space-y-6">
                 @csrf
                 <div>
@@ -39,5 +42,35 @@
         </div>
     </div>
 </section>
+
+<!-- Script untuk SweetAlert -->
+@if(session('success'))
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        Swal.fire({
+            icon: 'success',
+            title: 'Sukses',
+            text: '{{ session('success') }}',
+            timer: 3000,
+            showConfirmButton: false
+        });
+    });
+</script>
+@endif
+
+@if(session('error'))
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: '{{ session('error') }}',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#3b82f6'
+        });
+    });
+</script>
+@endif
+
 </body>
 </html>

@@ -47,9 +47,9 @@ class SalesExport implements FromCollection, WithHeadings, WithMapping
             $sale->member ? $sale->member->no_telephone : '-',
             $sale->member ? $sale->member->point : 0,
             $products,
-            'Rp ' . number_format($sale->sub_total + $sale->point_used * 100, 0, ',', '.'),
+            'Rp ' . number_format($sale->sub_total + $sale->point_used, 0, ',', '.'),
             'Rp ' . number_format($sale->amount_paid, 0, ',', '.'),
-            'Rp ' . number_format($sale->point_used * 100, 0, ',', '.'),
+            'Rp ' . number_format($sale->point_used, 0, ',', '.'),
             'Rp ' . number_format($sale->change, 0, ',', '.'),
             $date->format('d-m-Y'),  // Format tanggal yang sudah diparse
             $sale->user->name

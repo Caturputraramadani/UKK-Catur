@@ -9,14 +9,16 @@
     <h1 class="text-gray-700 text-2xl font-bold ml-2">PRODUCT</h1>
     <div class="card">
         <div class="card-body">
-            <div class="flex justify-end mt-4 mb-4">
 
-                <a href="javascript:;" class="btn btn-primary waves-effect btn-label waves-light"
-                    onclick="openProductModal()">
-                    <i class="bx bx-plus label-icon"></i> Add Product
+            @if (Auth::check() && Auth::user()->role === 'admin')
+            <div class="flex justify-between items-center mb-4">
+                <a href="{{ route('products.export') }}" class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-full mb-3">
+                    Export Product (.xlsx)
                 </a>
-
+                <a href="javascript:;" class="btn btn-primary waves-effect btn-label waves-light"
+                onclick="openProductModal()">Add Product</a>
             </div>
+            @endif
 
             <div class="relative overflow-x-auto">
                 <table class="text-left w-full whitespace-nowrap text-sm text-gray-500">
@@ -27,9 +29,9 @@
                             <th class="p-4 font-semibold">PRODUCT NAME</th>
                             <th class="p-4 font-semibold">PRICE</th>
                             <th class="p-4 font-semibold">STOCK</th>
-
+                            @if (Auth::check() && Auth::user()->role === 'admin')
                             <th class="p-4 font-semibold">ACTION</th>
-
+                            @endif
                         </tr>
                     </thead>
                     <tbody>
@@ -55,7 +57,7 @@
                                 <td class="p-4">
                                     <h3 class="font-medium text-teal-500">{{ $product->stock }}</h3>
                                 </td>
-
+                                @if (Auth::check() && Auth::user()->role === 'admin')
                                 <td class="p-4">
                                     <div
                                         class="hs-dropdown relative inline-flex [--placement:bottom-right] sm:[--trigger:hover]">
@@ -85,7 +87,8 @@
                                         </div>
                                     </div>
                                 </td>
-                                
+                                @endif
+
                             </tr>
                         @empty
                             <tr>

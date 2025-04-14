@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Exports\UsersExport;
+use Maatwebsite\Excel\Facades\Excel;
+
 
 class UserController extends Controller
 {
@@ -65,6 +68,11 @@ class UserController extends Controller
                 'error' => 'Failed to delete user: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    public function exportExcel()
+    {
+        return Excel::download(new UsersExport, 'users_export_' . date('Ymd_His') . '.xlsx');
     }
 
 

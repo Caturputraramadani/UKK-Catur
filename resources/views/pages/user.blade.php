@@ -11,10 +11,12 @@
     <h1 class="text-gray-700 text-2xl font-bold ml-2">USER</h1>
     <div class="card">
         <div class="card-body">
-            <div class="flex justify-end mt-4 mb-4">
-                <a href="javascript:;" class="btn btn-primary waves-effect btn-label waves-light" onclick="openUserModal()">
-                    <i class="bx bx-plus label-icon"></i> Add Data
+
+            <div class="flex justify-between items-center mb-4">
+                <a href="{{ route('users.export') }}" class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-full mb-3">
+                    Export User (.xlsx)
                 </a>
+                <a href="javascript:;" class="btn btn-primary waves-effect btn-label waves-light" onclick="openUserModal()">Add User</a>
             </div>
 
             <div class="relative overflow-x-auto">

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Exports\ProductsExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ProductController extends Controller
 {
@@ -91,6 +93,11 @@ class ProductController extends Controller
                 'error' => 'Failed to delete product: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    public function exportExcel()
+    {
+        return Excel::download(new ProductsExport, 'products_export_' . date('Ymd_His') . '.xlsx');
     }
 
 }
