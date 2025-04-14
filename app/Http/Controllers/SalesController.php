@@ -274,7 +274,7 @@ class SalesController extends Controller
     }
 
 
-    public function updateMemberPayment(Request $request, $id)  
+    public function updateMemberPayment(Request $request, $id)
     {
         $sale = Sale::with('member')->findOrFail($id);
 

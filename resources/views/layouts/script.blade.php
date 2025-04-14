@@ -548,7 +548,6 @@
 </script>
 
 
-
 {{-- Script Sales Chart --}}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -614,9 +613,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                     size: 10,
                                     style: 'italic'
                                 },
-                                ccallback: function(value, index) {
-    return dates[index];
-}
+                                callback: function(value, index) {
+                                return dates[index];
+                            }
 
                             },
                             grid: {
@@ -674,120 +673,137 @@ document.addEventListener('DOMContentLoaded', function() {
 {{-- Script Product Chart --}}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-                     const loadProductChart = async () => {
-                         const chartContainer = document.getElementById('productChartContainer');
-                         const chartCanvas = document.getElementById('productSalesChart');
-                         const loadingEl = document.getElementById('chartLoading');
-                         const errorEl = document.getElementById('chartError');
-                         const emptyEl = document.getElementById('chartEmpty');
+    const loadProductChart = async () => {
+        const chartContainer = document.getElementById('productChartContainer');
+        const chartCanvas = document.getElementById('productSalesChart');
+        const loadingEl = document.getElementById('chartLoading');
+        const errorEl = document.getElementById('chartError');
+        const emptyEl = document.getElementById('chartEmpty');
 
-                         try {
-                             // Tampilkan loading
-                             loadingEl.classList.remove('hidden');
-                             errorEl.classList.add('hidden');
-                             emptyEl.classList.add('hidden');
+        try {
 
-                             const response = await fetch('{{ route("sales.products.chart") }}');
+            loadingEl.classList.remove('hidden');
+            errorEl.classList.add('hidden');
+            emptyEl.classList.add('hidden');
 
-                             if (!response.ok) {
-                                 throw new Error(`HTTP error! status: ${response.status}`);
-                             }
+            const response = await fetch('{{ route("sales.products.chart") }}');
 
-                             const result = await response.json();
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
 
-                             // Sembunyikan loading
-                             loadingEl.classList.add('hidden');
+            const result = await response.json();
 
-                             if (result.status === 'error') {
-                                 throw new Error(result.message);
-                             }
 
-                             if (!result.data || result.data.length === 0) {
-                                 emptyEl.classList.remove('hidden');
-                                 chartCanvas.style.display = 'none';
-                                 return;
-                             }
+            loadingEl.classList.add('hidden');
 
-                             // Render chart
-                             renderProductChart(result.data);
+            if (result.status === 'error') {
+                throw new Error(result.message);
+            }
 
-                         } catch (error) {
-                             console.error('Error:', error);
-                             loadingEl.classList.add('hidden');
-                             errorEl.textContent = `Gagal memuat data: ${error.message}`;
-                             errorEl.classList.remove('hidden');
-                             chartCanvas.style.display = 'none';
-                         }
-                     };
+            if (!result.data || result.data.length === 0) {
+                emptyEl.classList.remove('hidden');
+                chartCanvas.style.display = 'none';
+                return;
+            }
 
-                     const renderProductChart = (data) => {
-                         const productNames = data.map(item => item.product_name);
-                         const totalSold = data.map(item => item.total_sold);
 
-                         const backgroundColors = [];
-                         const borderColors = [];
+            renderProductChart(result.data);
 
-                         productNames.forEach((_, index) => {
-                             const hue = (index * 137.508) % 360;
-                             backgroundColors.push(`hsla(${hue}, 70%, 70%, 0.7)`);
-                             borderColors.push(`hsla(${hue}, 70%, 50%, 1)`);
-                         });
+        } catch (error) {
+            console.error('Error:', error);
+            loadingEl.classList.add('hidden');
+            errorEl.textContent = `Gagal memuat data: ${error.message}`;
+            errorEl.classList.remove('hidden');
+            chartCanvas.style.display = 'none';
+        }
+    };
 
-                         const ctx = document.getElementById('productSalesChart').getContext('2d');
-                         new Chart(ctx, {
-                             type: 'pie',
-                             data: {
-                                 labels: productNames,
-                                 datasets: [{
-                                     data: totalSold,
-                                     backgroundColor: backgroundColors,
-                                     borderColor: borderColors,
-                                     borderWidth: 1
-                                 }]
-                             },
-                             options: {
-                                 responsive: true,
-                                 maintainAspectRatio: false,
-                                 plugins: {
-                                     legend: {
-                                         position: 'right',
-                                         labels: {
-                                             font: {
-                                                 size: 12
-                                             },
-                                             padding: 20
-                                         }
-                                     },
-                                     tooltip: {
-                                         callbacks: {
-                                             label: function(context) {
-                                                 const label = context.label || '';
-                                                 const value = context.raw || 0;
-                                                 const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                                 const percentage = Math.round((value / total) * 100);
-                                                 return `${label}: ${value} (${percentage}%)`;
-                                             }
-                                         }
-                                     },
-                                     title: {
-                                         display: true,
-                                         text: 'Total Penjualan: ' + totalSold.reduce((a, b) => a + b, 0),
-                                         font: {
-                                             size: 14
-                                         },
-                                         padding: {
-                                             top: 10,
-                                             bottom: 20
-                                         }
-                                     }
-                                 }
-                             }
-                         });
-                     };
+    const renderProductChart = (data) => {
+        const productNames = data.map(item => item.product_name);
+        const totalSold = data.map(item => item.total_sold);
 
-                     loadProductChart();
-                 });
+        const backgroundColors = [];
+        const borderColors = [];
+
+        productNames.forEach((_, index) => {
+            const hue = (index * 137.508) % 360;
+            backgroundColors.push(`hsla(${hue}, 70%, 70%, 0.7)`);
+            borderColors.push(`hsla(${hue}, 70%, 50%, 1)`);
+        });
+
+        const ctx = document.getElementById('productSalesChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: productNames,
+                datasets: [{
+                    data: totalSold,
+                    backgroundColor: backgroundColors,
+                    borderColor: borderColors,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            font: {
+                                size: 12
+                            },
+                            padding: 20
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = Math.round((value / total) * 100);
+                                return `${label}: ${value} (${percentage}%)`;
+                            }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Total Penjualan: ' + totalSold.reduce((a, b) => a + b, 0),
+                        font: {
+                            size: 14
+                        },
+                        padding: {
+                            top: 10,
+                            bottom: 20
+                        }
+                    }
+                }
+            }
+        });
+    };
+
+    loadProductChart();
+});
+
 
 </script>
 
 
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const checkbox = document.getElementById('usePoints');
+        const input = document.getElementById('availablePoint');
+
+        if (checkbox && input) {
+            checkbox.addEventListener('change', () => {
+                if (checkbox.checked) {
+                    input.classList.add('text-green-600', 'font-semibold');
+                } else {
+                    input.classList.remove('text-green-600', 'font-semibold');
+                }
+            });
+        }
+    });
+</script>
