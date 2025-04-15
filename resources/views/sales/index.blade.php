@@ -18,9 +18,10 @@
 
                 <!-- Add Sales button on the right -->
                 @if (Auth::check() && Auth::user()->role === 'employee')
-                    <a href="{{ route('sales.create') }}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Add Sales
-                    </a>
+                <a href="{{ route('sales.create') }}" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-full mb-3">
+                     Add Sales
+                </a>
+                
                 @endif
             </div>
 

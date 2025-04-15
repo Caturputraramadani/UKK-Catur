@@ -20,6 +20,25 @@ class Member extends Model
     {
         return $this->hasMany(Sale::class);
     }
+
+    
+    public function getPreviousPoints()
+    {
+        $pointHistory = json_decode($this->point_history, true) ?? [];
+        
+        // Cari entry terakhir dengan points_earned
+        $lastEarned = collect($pointHistory)->where('type', 'earned')->last();
+        
+        return $lastEarned['points_earned'] ?? 0;
+    }
+
+    public function updatePoints($earnedPoints)
+{
+    $this->point_usable = $this->point; // Point sebelum transaksi
+    $this->point += $earnedPoints;
+    $this->point_earned = $earnedPoints;
+    $this->save();
+}
 }
 
 

@@ -181,130 +181,172 @@ class SalesController extends Controller
 
 
     public function processPayment(Request $request)
-    {
-        $request->validate([
-            'products' => 'required|array',
-            'products.*.id' => 'required|exists:products,id',
-            'products.*.quantity' => 'required|integer|min:1',
-            'amount_paid' => 'required|numeric|min:0',
-            'member_phone' => 'nullable|string'
-        ]);
+{
+    $request->validate([
+        'products' => 'required|array',
+        'products.*.id' => 'required|exists:products,id',
+        'products.*.quantity' => 'required|integer|min:1',
+        'amount_paid' => 'required|numeric|min:0',
+        'member_phone' => 'nullable|string'
+    ]);
 
-        $subTotal = 0;
-        $productsData = [];
+    $subTotal = 0;
+    $productsData = [];
 
-        foreach ($request->products as $product) {
-            $productModel = Product::find($product['id']);
-            $totalPrice = $productModel->price * $product['quantity'];
-            $subTotal += $totalPrice;
+    foreach ($request->products as $product) {
+        $productModel = Product::find($product['id']);
+        $totalPrice = $productModel->price * $product['quantity'];
+        $subTotal += $totalPrice;
 
-            $productsData[] = [
-                'product_id' => $product['id'],
-                'quantity_product' => $product['quantity'],
-                'total_price' => $totalPrice
-            ];
-        }
-
-        $member = null;
-        $isNewMember = false;
-
-        if ($request->member_phone) {
-            $member = Member::where('no_telephone', $request->member_phone)->first();
-
-            if (!$member) {
-                $member = Member::create([
-                    'name' => '',
-                    'no_telephone' => $request->member_phone,
-                    'point' => 0,
-                    'date' => Carbon::now()
-                ]);
-                $isNewMember = true;
-            }
-        }
-
-        $change = $request->amount_paid - $subTotal;
-        if ($change < 0) {
-            return redirect()->back()->withErrors(['amount_paid' => 'Jumlah pembayaran kurang dari total harga.']);
-        }
-
-        $sale = Sale::create([
-            'date' => Carbon::now(),
-            'user_id' => Auth::id(),
-            'member_id' => $member ? $member->id : null,
-            'point_used' => 0,
-            'change' => $change,
-            'amount_paid' => $request->amount_paid,
-            'sub_total' => $subTotal,
-            'is_new_member' => $isNewMember
-        ]);
-
-        foreach ($productsData as $productData) {
-            $sale->saleDetails()->create($productData);
-
-            $product = Product::find($productData['product_id']);
-            $product->stock -= $productData['quantity_product'];
-            $product->save();
-        }
-
-        if ($member) {
-            $earnedPoint = floor($subTotal * 0.01);
-            $member->increment('point', $earnedPoint);
-        }
-
-        if ($member) {
-            return redirect()->route('sales.memberPayment', ['id' => $sale->id]);
-        }
-
-        return redirect()->route('sales.detailPrint', ['id' => $sale->id]);
+        $productsData[] = [
+            'product_id' => $product['id'],
+            'quantity_product' => $product['quantity'],
+            'total_price' => $totalPrice
+        ];
     }
 
+    $member = null;
+    $isNewMember = false;
 
-    public function memberPayment($id)
-    {
-        $sale = Sale::with(['saleDetails.product', 'member'])->findOrFail($id);
+    if ($request->member_phone) {
+        $member = Member::where('no_telephone', $request->member_phone)->first();
 
-        $isFirstPurchase = $sale->member->sales()->count() === 1;
-
-        return view('sales.member-payment', [
-            'sale' => $sale,
-            'is_new_member' => $sale->is_new_member,
-            'is_first_purchase' => $isFirstPurchase,
-            'can_use_points' => !$isFirstPurchase && $sale->member->point > 0
-        ]);
-    }
-
-
-    public function updateMemberPayment(Request $request, $id)
-    {
-        $sale = Sale::with('member')->findOrFail($id);
-
-        $request->validate([
-            'member_name' => 'required|string|max:255',
-            'use_points' => 'nullable|boolean'
-        ]);
-
-        $sale->member->update(['name' => $request->member_name]);
-
-        $pointUsed = 0;
-        $totalBefore = $sale->sub_total;
-
-        if ($request->use_points && $sale->member->point > 0) {
-            $pointUsed = min($sale->member->point, $totalBefore);
-            $sale->member->decrement('point', $pointUsed);
-            $totalBefore -= $pointUsed;
+        if (!$member) {
+            $member = Member::create([
+                'name' => '',
+                'no_telephone' => $request->member_phone,
+                'point' => 0,
+                'point_history' => json_encode([]),
+                'date' => Carbon::now()
+            ]);
+            $isNewMember = true;
         }
-
-        $change = $sale->amount_paid - $totalBefore;
-
-        $sale->update([
-            'point_used' => $pointUsed,
-            'sub_total' => $totalBefore,
-            'change' => $change,
-            'is_new_member' => false
-        ]);
-
-        return redirect()->route('sales.detailPrint', $sale->id);
     }
+
+    $change = $request->amount_paid - $subTotal;
+    if ($change < 0) {
+        return redirect()->back()->withErrors(['amount_paid' => 'Jumlah pembayaran kurang dari total harga.']);
+    }
+
+    $sale = Sale::create([
+        'date' => Carbon::now(),
+        'user_id' => Auth::id(),
+        'member_id' => $member ? $member->id : null,
+        'point_used' => 0,
+        'change' => $change,
+        'amount_paid' => $request->amount_paid,
+        'sub_total' => $subTotal,
+        'is_new_member' => $isNewMember
+    ]);
+
+    foreach ($productsData as $productData) {
+        $sale->saleDetails()->create($productData);
+
+        $product = Product::find($productData['product_id']);
+        $product->stock -= $productData['quantity_product'];
+        $product->save();
+    }
+
+    if ($member) {
+        $earnedPoint = floor($subTotal * 0.01);
+        
+        
+        $pointUsable = $member->point;
+        
+         $member->increment('point', $earnedPoint);
+        $member->point_earned = $earnedPoint;
+        $member->point_usable = $pointUsable;
+        
+       
+        $pointHistory = json_decode($member->point_history, true) ?? [];
+        $pointHistory[] = [
+            'date' => Carbon::now()->toDateString(),
+            'earned' => $earnedPoint,
+            'usable' => $pointUsable,
+            'type' => 'transaction'
+        ];
+        $member->point_history = json_encode($pointHistory);
+        $member->save();
+    }
+
+    if ($member) {
+        return redirect()->route('sales.memberPayment', ['id' => $sale->id]);
+    }
+
+    return redirect()->route('sales.detailPrint', ['id' => $sale->id]);
+}
+
+
+public function memberPayment($id)
+{
+    $sale = Sale::with(['saleDetails.product', 'member'])->findOrFail($id);
+    $member = $sale->member;
+
+    $isFirstPurchase = $member->sales()->count() === 1;
+    $currentPoints = $member->point;
+    $earnedPoints = $member->point_earned;
+    $usablePoints = $member->point_usable;
+
+    return view('sales.member-payment', [
+        'sale' => $sale,
+        'is_new_member' => $sale->is_new_member,
+        'is_first_purchase' => $isFirstPurchase,
+        'current_points' => $currentPoints,
+        'earned_points' => $earnedPoints,
+        'usable_points' => $usablePoints,
+        'can_use_points' => !$isFirstPurchase && $usablePoints > 0
+    ]);
+}
+
+
+public function updateMemberPayment(Request $request, $id)
+{
+    $sale = Sale::with('member')->findOrFail($id);
+    $member = $sale->member;
+    $isFirstPurchase = $member->sales()->count() === 1;
+
+    $request->validate([
+        'member_name' => 'required|string|max:255',
+        'use_points' => 'nullable|boolean'
+    ]);
+
+    $member->update(['name' => $request->member_name]);
+
+    $pointUsed = 0;
+    $totalBefore = $sale->sub_total;
+
+    if (!$isFirstPurchase && $request->use_points && $member->point_usable > 0) {
+        $pointUsed = min($member->point_usable, $totalBefore);
+        
+        // Kurangi point yang bisa digunakan
+        $member->decrement('point', $pointUsed);
+        $member->point_usable -= $pointUsed;
+        
+        // Update history
+        $pointHistory = json_decode($member->point_history, true) ?? [];
+        $pointHistory[] = [
+            'date' => Carbon::now()->toDateString(),
+            'used' => $pointUsed,
+            'remaining' => $member->point_usable,
+            'type' => 'point_used'
+        ];
+        $member->point_history = json_encode($pointHistory);
+        $member->save();
+        
+        $totalBefore -= $pointUsed;
+    }
+
+    $change = $sale->amount_paid - $totalBefore;
+
+    $sale->update([
+        'point_used' => $pointUsed,
+        'sub_total' => $totalBefore,
+        'change' => $change,
+        'is_new_member' => false
+    ]);
+
+    return redirect()->route('sales.detailPrint', $sale->id);
+}
 
 
 

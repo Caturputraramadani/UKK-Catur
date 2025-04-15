@@ -353,7 +353,6 @@
 
 {{-- Script Post Create --}}
 <script>
-
     function formatAndCheckPayment() {
         let input = document.getElementById('amount_paid');
         let value = input.value.replace(/\D/g, "");
@@ -366,11 +365,18 @@
     function checkPayment(amountPaid) {
         let totalAmount = {{ $total ?? 0 }};
         let warningText = document.getElementById('paymentWarning');
+        let orderButton = document.getElementById('orderButton');
 
         if (parseInt(amountPaid.replace(/\./g, "")) < totalAmount) {
             warningText.classList.remove('hidden');
+            orderButton.disabled = true;
+            orderButton.classList.remove('bg-blue-500');
+            orderButton.classList.add('bg-gray-400', 'cursor-not-allowed');
         } else {
             warningText.classList.add('hidden');
+            orderButton.disabled = false;
+            orderButton.classList.add('bg-blue-500');
+            orderButton.classList.remove('bg-gray-400', 'cursor-not-allowed');
         }
     }
 
@@ -378,26 +384,39 @@
         const memberSelect = document.getElementById('memberSelect');
         const memberFields = document.getElementById('memberFields');
         const paymentForm = document.getElementById('paymentForm');
-
+        const orderButton = document.getElementById('orderButton');
 
         memberSelect.addEventListener('change', function () {
             memberFields.classList.toggle('hidden', this.value !== "1");
         });
 
-
         paymentForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-
             // Convert formatted amount back to raw number
             const amountInput = document.getElementById('amount_paid');
-            amountInput.value = amountInput.value.replace(/\./g, '');
+            const rawAmount = amountInput.value.replace(/\./g, '');
+            amountInput.value = rawAmount;
 
-            // Submit the form
-            this.submit();
+            const totalAmount = {{ $total ?? 0 }};
+            
+            if (parseInt(rawAmount) < totalAmount) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Payment Insufficient',
+                    text: 'The payment amount is less than the total amount. Please add more payment.',
+                });
+                return false;
+            }
+
+            // If payment is sufficient, allow form submission
+            return true;
         });
+
+        // Initial check when page loads
+        checkPayment(document.getElementById('amount_paid').value.replace(/\D/g, ""));
     });
 </script>
-
+    
 
 {{-- Script Member Payment --}}
 <script>

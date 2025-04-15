@@ -22,7 +22,7 @@
             <div class="card-body">
                 <!-- Welcome Message with Role -->
                 <div class="mb-6">
-                    <h1 class="text-2xl font-semibold">Selamat Datang, {{ Auth::user()->role == 'admin' ? 'Admin' : 'Employee' }}.</h1>
+                    <h1 class="text-2xl font-semibold">Welcome, {{ Auth::user()->role == 'admin' ? 'Admin' : 'Employee' }}.</h1>
                 </div>
 
                 @if (Auth::check() && Auth::user()->role === 'employee')

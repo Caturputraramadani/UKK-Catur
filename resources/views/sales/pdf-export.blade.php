@@ -28,7 +28,7 @@
 </head>
 <body>
     <div class="header">
-        <div class="invoice-title">INVOICE</div>
+        <div class="invoice-title">STRUCK</div>
         <div>Spike Store</div>
         <div>Jl. Raya Puncak No. 123, City</div>
         <div>Phone: 555-9725-555</div>
@@ -91,7 +91,7 @@
     <div class="thank-you">
         <div>
             <div class="text-bold">INVOICE #{{ $sale->id }}</div>
-            <div>Date: {{ \Carbon\Carbon::parse($sale->date)->format('d F Y') }}</div>
+            <div>Date: {{ \Carbon\Carbon::parse($sale->created_at)->locale('id')->translatedFormat('l, j F Y H:i:s') }}</div>
             <div>Cashier: {{ $sale->user->name }}</div>
         </div>
 

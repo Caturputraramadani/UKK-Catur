@@ -23,6 +23,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
     Route::match(['post', 'put'], '/product/{id?}', [ProductController::class, 'save'])->name('products.save');
     Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
+    Route::get('/products/export', [ProductController::class, 'exportExcel'])->name('products.export');
 });
 
 // User Routes - hanya bisa diakses oleh admin
@@ -33,6 +34,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 Route::get('/users', [UserController::class, 'index'])->name('users.index');
 Route::match(['post', 'put'], '/user/{id?}', [UserController::class, 'save'])->name('users.save');
 Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+Route::get('/users/export', [UserController::class, 'exportExcel'])->name('users.export');
 
 // Sales Routes
 Route::middleware('auth')->group(function () {

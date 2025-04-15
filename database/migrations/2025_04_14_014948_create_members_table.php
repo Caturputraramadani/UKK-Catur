@@ -16,6 +16,9 @@ return new class extends Migration
             $table->string('name');
             $table->string('no_telephone');
             $table->integer('point')->default(0);
+            $table->json('point_history')->nullable();
+            $table->integer('point_earned')->default(0);
+            $table->integer('point_usable')->default(0); 
             $table->date('date');
             $table->timestamps();
         });

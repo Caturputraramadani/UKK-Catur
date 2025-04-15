@@ -81,7 +81,7 @@
 
                     <!-- Order Button -->
                     <div class="text-right">
-                        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-lg">Order</button>
+                        <button type="submit" id="orderButton" class="bg-blue-500 text-white px-4 py-2 rounded-lg">Order</button>
                     </div>
                 </form>
             </div>
@@ -89,4 +89,3 @@
     </div>
 
 @endsection
-
